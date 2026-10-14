@@ -1,0 +1,486 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f3eb">
+  <title>Entre Palavras — protótipos</title>
+  <style>
+    :root {
+      color-scheme: light;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+      --ink: #20251f;
+      --muted: #687067;
+      --line: #dddcd2;
+      --paper: #f6f3eb;
+      --surface: #fffefa;
+      --accent: #476545;
+      --accent-soft: #e2eadd;
+      --tile: #fffefa;
+      --tile-selected: #dfe8db;
+      --radius: 20px;
+      --shadow: 0 16px 40px rgba(49, 57, 44, .08);
+    }
+
+    * { box-sizing: border-box; }
+    body { margin: 0; min-width: 320px; background: var(--paper); color: var(--ink); }
+    button, input { font: inherit; }
+    button { color: inherit; }
+    button:focus-visible, input:focus-visible + label, a:focus-visible {
+      outline: 3px solid #d05a35;
+      outline-offset: 3px;
+    }
+    .skip-link {
+      position: absolute; top: 8px; left: 8px; z-index: 10;
+      padding: 10px 14px; transform: translateY(-160%);
+      background: var(--surface); color: var(--ink); border-radius: 8px;
+    }
+    .skip-link:focus { transform: translateY(0); }
+    .site-header {
+      display: flex; justify-content: space-between; align-items: center;
+      max-width: 1200px; margin: 0 auto; padding: 22px 34px;
+    }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; letter-spacing: -.04em; }
+    .brand-mark { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 12px; background: var(--accent); color: white; }
+    .header-note { color: var(--muted); font-size: .85rem; }
+    .shell { max-width: 1200px; margin: 0 auto; padding: 14px 34px 64px; }
+    .intro { display: flex; justify-content: space-between; align-items: end; gap: 24px; margin: 5px 0 22px; }
+    .eyebrow { margin: 0 0 8px; color: var(--accent); font-size: .73rem; font-weight: 800; letter-spacing: .13em; text-transform: uppercase; }
+    h1 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(2rem, 5vw, 3.35rem); font-weight: 500; letter-spacing: -.055em; line-height: 1; }
+    .intro-copy { max-width: 430px; margin: 0; color: var(--muted); line-height: 1.55; }
+    .prototype-picker {
+      display: flex; gap: 8px; flex-wrap: wrap; align-items: center;
+      margin: 0 0 18px; padding: 8px; border: 1px solid var(--line); border-radius: 16px;
+      background: rgba(255,255,255,.46);
+    }
+    .picker-title { padding: 0 10px; color: var(--muted); font-size: .76rem; font-weight: 700; }
+    .picker-option { position: relative; }
+    .picker-option input { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    .picker-option label {
+      display: block; padding: 10px 14px; border: 1px solid transparent; border-radius: 11px;
+      color: var(--muted); cursor: pointer; font-size: .86rem; font-weight: 700;
+    }
+    .picker-option input:checked + label { border-color: var(--line); background: var(--surface); color: var(--ink); box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+    .concept-caption { display: flex; align-items: center; gap: 10px; min-height: 37px; margin: 0 4px 16px; color: var(--muted); font-size: .88rem; }
+    .concept-caption strong { color: var(--ink); }
+    .concept-index { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: .75rem; font-weight: 800; }
+    .game-frame { min-height: 600px; padding: 27px; border: 1px solid var(--line); border-radius: 26px; background: var(--surface); box-shadow: var(--shadow); }
+    .game-layout { display: grid; grid-template-columns: minmax(0, 1fr) 250px; gap: 26px; max-width: 960px; margin: 0 auto; }
+    .game-main { min-width: 0; }
+    .game-head { display: flex; align-items: start; justify-content: space-between; gap: 15px; margin-bottom: 20px; }
+    .game-title { margin: 0 0 5px; font-family: Georgia, "Times New Roman", serif; font-size: 1.8rem; font-weight: 500; letter-spacing: -.045em; }
+    .game-subtitle { margin: 0; color: var(--muted); font-size: .92rem; line-height: 1.45; }
+    .mode-control { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+    .mode-button { border: 0; border-radius: 9px; padding: 8px 10px; background: transparent; color: var(--muted); cursor: pointer; white-space: nowrap; font-size: .77rem; font-weight: 700; }
+    .mode-button[aria-pressed="true"] { background: var(--surface); color: var(--ink); box-shadow: 0 1px 5px rgba(0,0,0,.09); }
+    .progress-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 20px 0 11px; color: var(--muted); font-size: .82rem; }
+    .progress-track { height: 7px; overflow: hidden; margin-bottom: 18px; border-radius: 9px; background: var(--paper); }
+    .progress-value { width: 0; height: 100%; border-radius: inherit; background: var(--accent); transition: width .3s ease; }
+    .solved-list { display: grid; gap: 8px; margin-bottom: 12px; }
+    .solved-group { display: flex; align-items: center; gap: 10px; padding: 10px 13px; border-radius: 12px; background: var(--accent-soft); color: var(--ink); }
+    .solved-group .solved-symbol { display: grid; place-items: center; flex: 0 0 24px; height: 24px; border-radius: 50%; background: var(--accent); color: white; font-size: .75rem; }
+    .solved-group strong { display: block; font-size: .82rem; }
+    .solved-group span { display: block; margin-top: 2px; color: var(--muted); font-size: .75rem; }
+    .word-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
+    .word-tile {
+      position: relative;
+      min-height: 58px; padding: 8px 5px; border: 1px solid var(--line); border-radius: 13px;
+      background: var(--tile); cursor: pointer; font-size: clamp(.73rem, 1.3vw, .88rem);
+      font-weight: 750; line-height: 1.15; transition: transform .15s ease, background .15s ease, border .15s ease;
+    }
+    .word-tile:hover { transform: translateY(-2px); border-color: var(--accent); }
+    .word-tile[aria-pressed="true"] { border-color: var(--accent); background: var(--tile-selected); box-shadow: inset 0 0 0 1px var(--accent); }
+    .selection-mark { position: absolute; top: 3px; right: 5px; color: var(--accent); font-size: .72rem; line-height: 1; }
+    .word-tile:disabled { cursor: default; }
+    .game-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 9px; margin-top: 15px; }
+    .primary-button, .secondary-button {
+      min-height: 44px; padding: 10px 15px; border: 1px solid transparent; border-radius: 12px;
+      cursor: pointer; font-size: .85rem; font-weight: 750;
+    }
+    .primary-button { background: var(--accent); color: #fff; }
+    .primary-button:disabled { cursor: not-allowed; opacity: .48; }
+    .secondary-button { border-color: var(--line); background: transparent; color: var(--ink); }
+    .hint-message, .status-message { min-height: 24px; margin: 11px 0 0; color: var(--muted); font-size: .83rem; line-height: 1.45; }
+    .status-message[data-kind="success"] { color: var(--accent); font-weight: 700; }
+    .status-message[data-kind="error"] { color: #a33d2a; font-weight: 700; }
+    .side-card { align-self: start; padding: 19px; border-radius: 17px; background: var(--paper); }
+    .side-card + .side-card { margin-top: 12px; }
+    .side-label { margin: 0 0 11px; color: var(--muted); font-size: .71rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+    .attempts { display: flex; gap: 6px; margin: 0 0 10px; }
+    .attempt-dot { width: 17px; height: 17px; border: 1px solid var(--accent); border-radius: 50%; background: var(--accent); }
+    .attempt-dot.empty { background: transparent; }
+    .side-copy { margin: 0; color: var(--muted); font-size: .83rem; line-height: 1.5; }
+    .hint-button { width: 100%; margin-top: 2px; }
+    .share-button { width: 100%; margin-top: 9px; }
+    .privacy-note { margin: 11px 0 0; color: var(--muted); font-size: .73rem; line-height: 1.4; }
+    .done-panel { padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: var(--paper); text-align: center; }
+    .done-panel h3 { margin: 0 0 8px; font-family: Georgia, "Times New Roman", serif; font-size: 1.6rem; font-weight: 500; }
+    .done-panel p { color: var(--muted); }
+    .share-dialog { width: min(440px, calc(100% - 32px)); padding: 24px; border: 1px solid var(--line); border-radius: 20px; background: var(--surface); color: var(--ink); box-shadow: var(--shadow); }
+    .share-dialog::backdrop { background: rgba(20, 20, 28, .62); }
+    .share-dialog h2 { margin: 0 0 8px; font-family: Georgia, "Times New Roman", serif; font-size: 1.6rem; font-weight: 500; }
+    .share-dialog p { color: var(--muted); line-height: 1.5; }
+    .share-preview { width: 100%; min-height: 90px; margin: 7px 0 12px; padding: 12px; border: 1px solid var(--line); border-radius: 10px; background: var(--paper); color: var(--ink); resize: vertical; }
+    .share-dialog-actions { display: flex; justify-content: end; gap: 9px; }
+    .proto-footnote { max-width: 980px; margin: 15px auto 0; color: var(--muted); font-size: .77rem; line-height: 1.5; }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    /* Concept 2: a warm, tactile desk with an explicit selection tray. */
+    body[data-concept="2"] {
+      --ink: #252018; --muted: #6f6251; --line: #e4d8c3; --paper: #f4ebdb; --surface: #fffaf0;
+      --accent: #a24a28; --accent-soft: #f5ddc9; --tile: #fffaf1; --tile-selected: #f3d5b9;
+      --radius: 8px; --shadow: 0 13px 0 rgba(117,86,49,.08), 0 24px 46px rgba(89,65,34,.09);
+    }
+    body[data-concept="2"] .game-frame { border-radius: 10px; border-width: 2px; }
+    body[data-concept="2"] .game-layout { grid-template-columns: minmax(0, 1fr) 210px; }
+    body[data-concept="2"] .word-tile { border-radius: 8px; box-shadow: 0 3px 0 rgba(73,52,30,.08); }
+    body[data-concept="2"] .side-card { border-radius: 8px; border: 1px dashed #d1b892; background: #fbf1df; }
+    body[data-concept="2"] .brand-mark { border-radius: 7px; }
+    body[data-concept="2"] .solved-group { border-radius: 7px; }
+    body[data-concept="2"] .solved-symbol { border-radius: 7px !important; }
+
+    /* Concept 3: bold, high-contrast studio with compact controls. */
+    body[data-concept="3"] {
+      color-scheme: dark;
+      --ink: #f5f3ff; --muted: #aaa9c2; --line: #37364e; --paper: #191827; --surface: #222136;
+      --accent: #a78bfa; --accent-soft: #38304f; --tile: #29283e; --tile-selected: #493e70;
+      --shadow: 0 18px 44px rgba(4,3,17,.35);
+    }
+    body[data-concept="3"] .site-header, body[data-concept="3"] .shell { color: var(--ink); }
+    body[data-concept="3"] .prototype-picker { background: #201f32; }
+    body[data-concept="3"] .picker-option input:checked + label { background: #302e47; }
+    body[data-concept="3"] .game-frame { border: 1px solid #45425f; }
+    body[data-concept="3"] .game-layout { grid-template-columns: 205px minmax(0, 1fr); }
+    body[data-concept="3"] .game-main { grid-column: 2; grid-row: 1; }
+    body[data-concept="3"] .game-head { flex-direction: column; align-items: start; }
+    body[data-concept="3"] .mode-control { background: #191827; }
+    body[data-concept="3"] .mode-button[aria-pressed="true"] { background: #37334f; }
+    body[data-concept="3"] .side-column { grid-column: 1; grid-row: 1; display: flex; flex-direction: column; }
+    body[data-concept="3"] .side-card { background: #2a2940; }
+    body[data-concept="3"] .side-card + .side-card { margin-top: 12px; }
+    body[data-concept="3"] .word-tile { min-height: 63px; border-radius: 16px; }
+    body[data-concept="3"] .brand-mark { border-radius: 50%; background: #a78bfa; color: #211c35; }
+    body[data-concept="3"] .solved-group { background: #34314a; }
+    body[data-concept="3"] .secondary-button { border-color: var(--line); color: var(--ink); }
+    body[data-concept="3"] .primary-button { color: #211c35; }
+    body[data-concept="3"] .hint-message, body[data-concept="3"] .status-message[data-kind="error"] { color: #ffc2a8; }
+    body[data-concept="3"] .status-message[data-kind="success"] { color: #c7f6d4; }
+    body[data-concept="3"] .done-panel { background: #2a2940; }
+    body[data-concept="3"] .share-dialog { background: var(--surface); color: var(--ink); }
+
+    @media (max-width: 760px) {
+      .site-header { padding: 16px 18px; }
+      .header-note { display: none; }
+      .shell { padding: 10px 16px 40px; }
+      .intro { display: block; margin-bottom: 19px; }
+      .intro-copy { margin-top: 11px; }
+      .prototype-picker { gap: 3px; padding: 6px; }
+      .picker-title { width: 100%; padding: 4px 8px 2px; }
+      .picker-option { flex: 1; }
+      .picker-option label { padding: 9px 5px; text-align: center; font-size: .78rem; }
+      .game-frame { min-height: 0; padding: 17px 13px; border-radius: 19px; }
+      .game-layout, body[data-concept="2"] .game-layout, body[data-concept="3"] .game-layout {
+        display: flex; flex-direction: column; gap: 16px;
+      }
+      .game-head { display: block; }
+      .mode-control { margin-top: 14px; width: fit-content; }
+      .mode-button { font-size: .74rem; }
+      .game-title { font-size: 1.65rem; }
+      .word-grid { gap: 7px; }
+      .word-tile { min-height: 54px; border-radius: 10px; font-size: clamp(.66rem, 3.5vw, .82rem); }
+      .side-column, body[data-concept="3"] .side-column { order: 2; width: 100%; }
+      .game-main, body[data-concept="3"] .game-main { order: 1; }
+      .side-column { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
+      .side-card, .side-card + .side-card { margin: 0; padding: 14px; }
+      .side-card:first-child { grid-column: 1 / -1; }
+      .side-card:last-child { grid-column: 1 / -1; }
+    }
+    @media (max-width: 380px) {
+      .word-grid { gap: 5px; }
+      .word-tile { padding-inline: 2px; font-size: .65rem; }
+      .game-frame { padding-inline: 10px; }
+      .attempt-dot { width: 14px; height: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body data-concept="1">
+  <a class="skip-link" href="#prototipo">Pular para o jogo</a>
+  <header class="site-header">
+    <div class="brand"><span class="brand-mark" aria-hidden="true">✳</span><span>entre palavras</span></div>
+    <span class="header-note">Estudo de interface · 3 direções visuais</span>
+  </header>
+
+  <main class="shell" id="prototipo">
+    <section class="intro" aria-labelledby="page-title">
+      <div>
+        <p class="eyebrow" id="concept-kicker">Estúdio de conceitos · 01 / 03</p>
+        <h1 id="page-title">Qual é o elo?</h1>
+      </div>
+      <p class="intro-copy">Quatro palavras. Uma conexão em comum. Explore três interpretações visuais para o mesmo jogo.</p>
+    </section>
+
+    <fieldset class="prototype-picker" aria-label="Escolha um protótipo visual">
+      <legend class="sr-only">Protótipos de interface</legend>
+      <span class="picker-title" aria-hidden="true">Explorar conceito</span>
+      <span class="picker-option"><input type="radio" name="concept" id="concept-1" value="1" checked><label for="concept-1">01 · Clareira</label></span>
+      <span class="picker-option"><input type="radio" name="concept" id="concept-2" value="2"><label for="concept-2">02 · Caderno</label></span>
+      <span class="picker-option"><input type="radio" name="concept" id="concept-3" value="3"><label for="concept-3">03 · Órbita</label></span>
+    </fieldset>
+
+    <p class="concept-caption" id="concept-description"><span class="concept-index">01</span><span><strong>Clareira</strong> — calma editorial, cores naturais e leitura sem pressa.</span></p>
+
+    <section class="game-frame" aria-label="Protótipo interativo do jogo">
+      <div id="game-content"></div>
+    </section>
+    <p class="sr-only" id="announcer" role="status" aria-live="polite"></p>
+    <p class="proto-footnote">Protótipo exploratório com dados de demonstração. A regra de limite de erros, o gatilho de pistas e a pontuação seguem pendentes no PRD; a simulação não define esses requisitos.</p>
+  </main>
+
+  <dialog class="share-dialog" id="share-dialog" aria-labelledby="share-title">
+    <form method="dialog">
+      <h2 id="share-title">Compartilhe sua partida</h2>
+      <p>Prévia sem palavras nem categorias-resposta:</p>
+      <textarea class="share-preview" id="share-preview" readonly aria-label="Prévia do texto sem spoilers"></textarea>
+      <div class="share-dialog-actions">
+        <button class="secondary-button" value="close">Fechar</button>
+        <button class="primary-button" type="button" id="copy-share">Copiar texto</button>
+      </div>
+      <p class="status-message" id="share-status" role="status" aria-live="polite"></p>
+    </form>
+  </dialog>
+
+  <script>
+    const puzzles = [
+      [
+        { name: "Coisas que giram", words: ["catavento", "pião", "roda", "ventilador"] },
+        { name: "Animais com asas", words: ["borboleta", "morcego", "abelha", "coruja"] },
+        { name: "Vêm em pares", words: ["meias", "luvas", "brincos", "sapatos"] },
+        { name: "Cores", words: ["azul", "verde", "amarelo", "vermelho"] }
+      ],
+      [
+        { name: "Objetos que giram", words: ["catavento", "pião", "roda", "ventilador"] },
+        { name: "Animais com asas", words: ["borboleta", "morcego", "abelha", "coruja"] },
+        { name: "Itens usados aos pares", words: ["meias", "luvas", "brincos", "sapatos"] },
+        { name: "Cores", words: ["azul", "verde", "amarelo", "vermelho"] }
+      ]
+    ];
+    const conceptCopy = {
+      "1": { title: "Clareira", text: "calma editorial, cores naturais e leitura sem pressa." },
+      "2": { title: "Caderno", text: "textura de papel, calor artesanal e grupos com cara de anotação." },
+      "3": { title: "Órbita", text: "alto contraste, energia digital e controles compactos." }
+    };
+    const concepts = document.querySelectorAll('input[name="concept"]');
+    const gameContent = document.getElementById("game-content");
+    const caption = document.getElementById("concept-description");
+    const conceptKicker = document.getElementById("concept-kicker");
+    const announcer = document.getElementById("announcer");
+    const shareDialog = document.getElementById("share-dialog");
+    const sharePreview = document.getElementById("share-preview");
+    const shareStatus = document.getElementById("share-status");
+    const storageKey = "entre-palavras-demo";
+    let state = loadGame();
+
+    function newGame() {
+      const chosen = puzzles[Math.floor(Math.random() * puzzles.length)];
+      const words = chosen.flatMap(group => group.words).sort(() => Math.random() - 0.5);
+      state = { groups: chosen, words, selected: [], solved: [], mistakes: 0, hint: "", mode: "relaxado", status: "Selecione quatro palavras que compartilham uma relação." };
+      saveGame();
+      render();
+    }
+
+    function loadGame() {
+      try {
+        const stored = JSON.parse(localStorage.getItem(storageKey));
+        if (stored && Array.isArray(stored.words) && stored.words.length === 16 && Array.isArray(stored.solved) && Array.isArray(stored.groups)) {
+          const groups = stored.groups;
+          const validGroups = groups.length === 4 && groups.every(group =>
+            typeof group.name === "string" && Array.isArray(group.words) && group.words.length === 4 &&
+            group.words.every(word => stored.words.includes(word))
+          );
+          if (validGroups) {
+            return {
+              groups, words: stored.words, solved: stored.solved.filter(name => groups.some(group => group.name === name)),
+              selected: Array.isArray(stored.selected) ? stored.selected.filter(word => stored.words.includes(word)) : [],
+              mistakes: Number.isFinite(stored.mistakes) ? stored.mistakes : 0,
+              mode: stored.mode === "limite" ? "limite" : "relaxado",
+              hint: "", status: "Partida restaurada neste dispositivo."
+            };
+          }
+        }
+      } catch (error) {
+        console.warn("Não foi possível restaurar a partida salva.", error);
+      }
+      return null;
+    }
+
+    function saveGame() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify({
+          words: state.words, groups: state.groups, solved: state.solved, selected: state.selected,
+          mistakes: state.mistakes, mode: state.mode
+        }));
+      } catch (error) {
+        console.warn("Não foi possível salvar a partida neste dispositivo.", error);
+      }
+    }
+
+    function announce(message) {
+      announcer.textContent = "";
+      window.setTimeout(() => { announcer.textContent = message; }, 30);
+    }
+
+    function setConcept(value) {
+      document.body.dataset.concept = value;
+      const index = String(value).padStart(2, "0");
+      const copy = conceptCopy[value];
+      conceptKicker.textContent = `Estúdio de conceitos · ${index} / 03`;
+      caption.innerHTML = `<span class="concept-index">${index}</span><span><strong>${copy.title}</strong> — ${copy.text}</span>`;
+    }
+
+    function render() {
+      const remaining = state.words.filter(word => !state.solved.some(name => state.groups.find(group => group.name === name)?.words.includes(word)));
+      gameContent.innerHTML = `
+        <div class="game-layout">
+          <div class="game-main">
+            <div class="game-head">
+              <div>
+                <p class="eyebrow">Partida livre</p>
+                <h2 class="game-title">Encontre os grupos</h2>
+                <p class="game-subtitle">Separe as palavras em quatro grupos de quatro.</p>
+              </div>
+              <div class="mode-control" role="group" aria-label="Modo de jogo">
+                <button class="mode-button" type="button" aria-pressed="${state.mode === "relaxado"}" data-mode="relaxado">Relaxado</button>
+                <button class="mode-button" type="button" aria-pressed="${state.mode === "limite"}" data-mode="limite">Com limite</button>
+              </div>
+            </div>
+            <div class="progress-row"><span>Grupos encontrados</span><strong>${state.solved.length} de 4</strong></div>
+            <div class="progress-track" role="progressbar" aria-label="Grupos encontrados" aria-valuemin="0" aria-valuemax="4" aria-valuenow="${state.solved.length}"><div class="progress-value" style="width:${state.solved.length * 25}%"></div></div>
+            <div class="solved-list" aria-label="Grupos encontrados">${state.groups.filter(group => state.solved.includes(group.name)).map(group => `<div class="solved-group"><span class="solved-symbol" aria-hidden="true">✓</span><div><strong>${group.name}</strong><span>${group.words.join(" · ")}</span></div></div>`).join("")}</div>
+            ${state.solved.length === 4 ? `
+              <div class="done-panel">
+                <h3>Que boa conexão!</h3>
+                <p>Você encontrou os quatro grupos com ${state.mistakes} ${state.mistakes === 1 ? "erro" : "erros"}.</p>
+                <button class="primary-button" type="button" data-action="restart">Jogar outra</button>
+              </div>
+            ` : `
+              <div class="word-grid" role="group" aria-label="Palavras para agrupar">                            ${remaining.map(word => `<button class="word-tile" type="button" aria-pressed="${state.selected.includes(word)}" ${state.selected.length >= 4 && !state.selected.includes(word) ? "disabled" : ""} data-word="${word}">${word}${state.selected.includes(word) ? '<span class="selection-mark" aria-hidden="true">✓</span>' : ""}</button>`).join("")}</div>
+              <div class="game-actions">
+                <button class="primary-button" type="button" data-action="submit" ${state.selected.length !== 4 ? "disabled" : ""}>Confirmar grupo <span aria-hidden="true">· ${state.selected.length}/4</span></button>
+                <button class="secondary-button" type="button" data-action="clear" ${state.selected.length === 0 ? "disabled" : ""}>Limpar seleção</button>
+              </div>
+              <p class="status-message" data-kind="${state.kind || ""}">${state.status}</p>
+            `}
+          </div>
+          <aside class="side-column" aria-label="Informações e ações da partida">
+            <section class="side-card">
+              <p class="side-label">Tentativas incorretas</p>
+              <div class="attempts" aria-label="${state.mistakes} ${state.mistakes === 1 ? "erro registrado" : "erros registrados"}">${Array.from({ length: Math.max(4, state.mistakes) }, (_, i) => `<span class="attempt-dot ${i >= state.mistakes ? "empty" : ""}" aria-hidden="true"></span>`).join("")}</div>
+              <p class="side-copy">${state.mistakes} ${state.mistakes === 1 ? "erro" : "erros"} até aqui.<br>${state.mode === "limite" ? "Limite: regra em definição." : "Modo sem encerramento por erros."}</p>
+            </section>
+            <section class="side-card">
+              <p class="side-label">Um empurrãozinho</p>
+              <p class="side-copy">Uma pista opcional pode ajudar quando um grupo escapar.</p>
+              <button class="secondary-button hint-button" type="button" data-action="hint" ${state.solved.length === 0 || state.solved.length === 4 || state.hint ? "disabled" : ""}>Revelar uma pista</button>
+              <p class="hint-message">${state.hint}</p>
+            </section>
+            <section class="side-card">
+              <p class="side-label">Quando terminar</p>
+              <p class="side-copy">Compartilhe seu resultado sem entregar as respostas.</p>
+              <button class="secondary-button share-button" type="button" data-action="share" ${state.solved.length !== 4 ? "disabled" : ""}>Compartilhar resultado</button>
+              <p class="privacy-note">Sem conta. O progresso fica neste dispositivo.</p>
+            </section>
+          </aside>
+        </div>
+      `;
+    }
+
+    function onGameClick(event) {
+      const tile = event.target.closest("[data-word]");
+      if (tile) {
+        const word = tile.dataset.word;
+        state.selected = state.selected.includes(word) ? state.selected.filter(item => item !== word) : state.selected.length < 4 ? [...state.selected, word] : state.selected;
+        state.kind = "";
+        state.status = state.selected.length === 4 ? "Quatro palavras selecionadas. Confira e confirme o grupo." : `${state.selected.length} de 4 palavras selecionadas.`;
+        announce(`${word} ${state.selected.includes(word) ? "selecionada" : "desmarcada"}. ${state.selected.length} de 4 palavras selecionadas.`);
+        saveGame();
+        render();
+        gameContent.querySelector(`[data-word="${CSS.escape(word)}"]`)?.focus();
+        return;
+      }
+      const action = event.target.closest("[data-action]")?.dataset.action;
+      if (!action) return;
+      if (action === "clear") {
+        state.selected = [];
+        state.status = "Seleção limpa. Escolha quatro palavras.";
+        state.kind = "";
+        announce(state.status);
+      } else if (action === "submit") {
+        const found = state.groups.find(group => !state.solved.includes(group.name) && group.words.every(word => state.selected.includes(word)));
+        if (found) {
+          state.solved.push(found.name);
+          state.status = `Grupo encontrado: ${found.name}.`;
+          state.kind = "success";
+          state.hint = "";
+          announce(state.status);
+        } else {
+          state.mistakes += 1;
+          state.status = "Esse grupo não fecha. Tente outra combinação.";
+          state.kind = "error";
+          announce(`${state.status} ${state.mistakes} ${state.mistakes === 1 ? "erro" : "erros"} registrados.`);
+        }
+        state.selected = [];
+      } else if (action === "hint") {
+        const target = state.groups.find(group => !state.solved.includes(group.name));
+        if (target) state.hint = `Pista: ${target.words[0]} pertence ao mesmo grupo que outras três palavras.`;
+      } else if (action === "restart") {
+        newGame();
+        return;
+      } else if (action === "share") {
+        const result = `Qual é o elo? ${state.solved.length}/4 grupos encontrados · ${state.mistakes} erros. Você também consegue descobrir as conexões?`;
+        sharePreview.value = result;
+        shareStatus.textContent = "";
+        shareDialog.showModal();
+        return;
+      }
+      saveGame();
+      render();
+      const focusTarget = action === "submit"
+        ? gameContent.querySelector('[data-word]') || gameContent.querySelector('[data-action="restart"]')
+        : action === "clear" ? gameContent.querySelector('[data-action="clear"]')
+        : action === "hint" ? gameContent.querySelector('[data-action="hint"]') : null;
+      focusTarget?.focus();
+    }
+
+    concepts.forEach(input => input.addEventListener("change", () => setConcept(input.value)));
+    gameContent.addEventListener("click", onGameClick);
+    gameContent.addEventListener("click", event => {
+      const mode = event.target.closest("[data-mode]");
+      if (!mode) return;
+      state.mode = mode.dataset.mode;
+      state.status = state.mode === "limite" ? "Modo com limite selecionado. A regra de encerramento ainda está em definição." : "Modo relaxado selecionado.";
+      state.kind = "";
+      announce(state.status);
+      saveGame();
+      render();
+      gameContent.querySelector(`[data-mode="${mode.dataset.mode}"]`)?.focus();
+    });
+    document.getElementById("copy-share").addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(sharePreview.value);
+        shareStatus.textContent = "Texto sem spoilers copiado.";
+      } catch (error) {
+        sharePreview.focus();
+        sharePreview.select();
+        shareStatus.textContent = "Não foi possível copiar automaticamente. O texto está selecionado para cópia manual.";
+      }
+    });
+    if (state) render();
+    else newGame();
+  </script>
+</body>
+</html>
